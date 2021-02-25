@@ -1,0 +1,5 @@
+exports.token =
+  "EAAHXbtq2RZCIBAOJR3bx93O8ykEeZCXVtKYXiEVEhAAlZBfR3cQBy7AK3M9nOKtpFywZBTlCjomEZBysU41wNpzecD095yZAsP2dbCAhjbMrgpuwl9Q2g18k0Gg55IYalgYssmYxLj7McAJgDtb4uuwF2ZAENZAsQxQAz2ZA2skplhZCyOG9mKoIS5";
+
+exports.appId = "518346092464114";
+exports.appSecret = "dc01179afd290354cd9b23b3279386f1";

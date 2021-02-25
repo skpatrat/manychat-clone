@@ -33,7 +33,7 @@ const FlowBuilder = () => {
 
   const getForm = () => {
     if (selectedElement !== null) {
-      var data = selectedElement.data;
+      var data = selectedElement.data;//! LEFT HERE ... TRYING TO CREATE FORM CONDITIONALLY AND SUCCESSFULLY UPDATE DATA
 
       return (
         <div>

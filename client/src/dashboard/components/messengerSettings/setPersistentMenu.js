@@ -107,6 +107,7 @@ const SetPersistentMenuForm = () => {
       .then(function (response) {
         console.log(response);
       });
+    alert("Done!");
   };
 
   useEffect(() => {

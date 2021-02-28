@@ -28,6 +28,7 @@ import { Route, Switch } from "react-router-dom";
 import DashboardHome from "./components/dashboardHome";
 import FlowBuilder from "./components/flowBuilder/flowBuilder";
 import MessengerSettings from "./components/messengerSettings";
+import DrawflowFlowBuilder from "./components/drawflowFlowBuilder/drawflowFlowBuilder";
 
 // import Chart from "./Chart";
 // import Deposits from "./Deposits";
@@ -103,6 +104,12 @@ const Dashboard = () => {
               </ListItemIcon>
               <ListItemText primary="Flow Builder" />
             </ListItem>
+            <ListItem button component={Link} to="/drawflowFlowBuilder">
+              <ListItemIcon>
+                <TimelineIcon />
+              </ListItemIcon>
+              <ListItemText primary="Flow Builder (beta)" />
+            </ListItem>
             <ListItem button component={Link} to="/messengerSettings">
               <ListItemIcon>
                 <SettingsIcon />
@@ -117,6 +124,7 @@ const Dashboard = () => {
         <Route path={"/"} exact component={DashboardHome} />
         <Route path={"/flowBuilder"} component={FlowBuilder} />
         <Route path={"/messengerSettings"} component={MessengerSettings} />
+        <Route path={"/drawflowFlowBuilder"} component={DrawflowFlowBuilder} />
         {/* <Route path={"/userInfo"} component={UserInfo} />
         <Route path={"/wordPacks"} component={WordPacks} />
         <Route path={"/page2"} component={DashboardHomeTest2} /> */}

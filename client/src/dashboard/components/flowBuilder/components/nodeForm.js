@@ -1,7 +1,7 @@
-import Form from "@rjsf/core";
-import React from "react";
+import Form from "@rjsf/material-ui";
+import React, { useEffect } from "react";
 
-const NodeForm = ({ onSubmitCallback, data }) => {
+const NodeForm = ({ onSubmitCallback, data, nodeTypes }) => {
   //   const [data, setData] = useState(currentData);
 
   const nodeFormSchema = {
@@ -10,54 +10,82 @@ const NodeForm = ({ onSubmitCallback, data }) => {
       node_details: {
         type: "object",
         properties: {
-          node_id: {
+          text: {
             type: "string",
           },
           node_type: {
             title: "type",
             type: "string",
-            default: "text",
-            oneOf: [
-              {
-                title: "text response",
-                enum: ["text"],
-              },
-              {
-                title: "quick reply",
-                enum: ["quick_reply"],
-              },
-            ],
+            default: nodeTypes[0],
+            oneOf: nodeTypes.map((n) => ({
+              title: n.toString(),
+              enum: [n.toString()],
+            })),
           },
         },
-        required: ["node_id", "node_type"],
+        required: ["text", "node_type"],
         dependencies: {
           node_type: {
-            oneOf: [
-              {
-                properties: {
-                  node_type: {
-                    enum: ["text"],
-                  },
-                  node_content_type: {
-                    title: "text node content type",
-                    type: "string",
-                  },
-                },
-                required: ["node_content_type"],
-              },
-              {
-                properties: {
-                  node_type: {
-                    enum: ["quick_reply"],
-                  },
-                  node_content_type: {
-                    title: "text node content type",
-                    type: "string",
-                  },
-                },
-                required: ["node_content_type"],
-              },
-            ],
+            oneOf: nodeTypes.map((n) =>
+              n === nodeTypes[0]
+                ? {
+                    properties: {
+                      node_type: {
+                        enum: [n],
+                      },
+                    },
+                  }
+                : {
+                    properties: {
+                      node_type: {
+                        enum: [n],
+                      },
+                      node_content_type: {
+                        title: "node content type",
+                        type: "string",
+                        // default: ["text"],
+                        oneOf: [
+                          {
+                            title: "text",
+                            enum: ["text"],
+                          },
+                          {
+                            title: "quick_reply",
+                            enum: ["quick_reply"],
+                          },
+                        ],
+                      },
+                    },
+                    required: ["node_content_type"],
+                    dependencies: {
+                      node_content_type: {
+                        oneOf: [
+                          {
+                            properties: {
+                              node_content_type: {
+                                enum: ["text"],
+                              },
+                            },
+                            // required: [],
+                          },
+                          {
+                            properties: {
+                              node_content_type: {
+                                enum: ["quick_reply"],
+                              },
+                              options: {
+                                type: "array",
+                                items: {
+                                  type: "string",
+                                },
+                              },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  }
+            ),
           },
         },
       },
@@ -70,13 +98,30 @@ const NodeForm = ({ onSubmitCallback, data }) => {
     },
   };
 
+  useEffect(() => {
+    console.log(["nodeForm useEffect data:", data]);
+    // console.log([
+    //   "nodeForm useEffect formData:",
+    //   {
+    //     node_details: {
+    //       ...data,
+    //     },
+    //   },
+    // ]);
+  }, [data]);
+
   return (
     <div>
-      <div>{JSON.stringify(data)}</div>
+      <h3>{`NODE ${data.node_id}`}</h3>
       <Form
         schema={nodeFormSchema}
         onSubmit={onSubmitCallback}
-        formData={data}
+        formData={{
+          node_details: {
+            ...data,
+            options: Object.values(data.options),
+          },
+        }}
       />
     </div>
   );

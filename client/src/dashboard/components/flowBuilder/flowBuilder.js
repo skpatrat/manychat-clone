@@ -9,78 +9,171 @@ import ReactFlow, {
   addEdge,
   Background,
   Controls,
+  isEdge,
   MiniMap,
   updateEdge,
 } from "react-flow-renderer";
-import MessengerInputNode from "./nodeTypes/MessengerInputNode";
 import { Button } from "@material-ui/core";
 import NodeForm from "./components/nodeForm";
+
+// import MessengerInputNode from "./nodeTypes/MessengerInputNode";
+import StartNode from "./nodeTypes/StartNode";
+import FlowNode from "./nodeTypes/FlowNode";
+import EdgeForm from "./components/edgeForm";
+import flowParser from "./flowParser";
 
 const FlowBuilder = () => {
   const classes = useStyles();
   // const fixedHeightPaper = clsx(classes.paper, classes.fixedBuilderHeight);
 
   const nodeTypes = {
-    inputNode: MessengerInputNode,
+    // getStartedNode:
+    startNode: StartNode,
+    // inputNode: MessengerInputNode,
+    flowNode: FlowNode,
   };
 
   const [reactflowInstance, setReactflowInstance] = useState(null);
   const [elements, setElements] = useState([]);
   const [elementNextId, setElementsNextId] = useState();
-  const [showOptions, setShowOptions] = useState(false);
 
-  const [selectedElement, setSelectedElement] = useState();
+  const [selectedElement, setSelectedElement] = useState(null);
 
   const getForm = () => {
-    if (selectedElement !== null) {
-      var data = selectedElement.data;//! LEFT HERE ... TRYING TO CREATE FORM CONDITIONALLY AND SUCCESSFULLY UPDATE DATA
+    if (selectedElement) {
+      if (isEdge(selectedElement)) {
+        return (
+          <div>
+            <EdgeForm element={selectedElement} />
+          </div>
+        );
+      } else {
+        var data = {
+          ...selectedElement.data,
+          node_id: selectedElement.id,
+          node_type: selectedElement.type,
+        };
 
-      return (
-        <div>
-          <NodeForm
-            onSubmitCallback={(callbackData) => {
-              console.log(callbackData);
-              data = { ...callbackData };
+        return (
+          <div>
+            <NodeForm
+              onSubmitCallback={(callbackData) => {
+                console.log(["callback data", callbackData]);
+                data = { ...callbackData };
 
-              updateNode(selectedElement, data);
-              // setTestData(callbackData);
-            }}
-            data={data}
-          />
-        </div>
-      );
+                var {
+                  node_id,
+                  node_type,
+                  node_content_type,
+                  text,
+                  options,
+                } = callbackData.formData.node_details;
+
+                var nodeOptions = {};
+                for (var o in Object.keys(options)) {
+                  nodeOptions[`${node_id}_${Object.keys(options)[o]}`] =
+                    options[Object.keys(options)[o]];
+                }
+
+                console.log({
+                  ...selectedElement.data,
+                  content: "quick_reply",
+                  text: text,
+                  options: nodeOptions,
+                });
+
+                updateNode(selectedElement, {
+                  id: node_id,
+                  type: node_type,
+                  data: {
+                    ...selectedElement.data,
+                    content: "quick_reply",
+                    text: text,
+                    options: nodeOptions,
+                  },
+                });
+
+                // setTestData(callbackData);
+              }}
+              data={data}
+              nodeTypes={Object.keys(nodeTypes)}
+            />
+          </div>
+        );
+      }
     } else {
       return <></>;
     }
   };
 
   useEffect(() => {
-    setElementsNextId(elements.length + 1);
+    console.log(["flowBuilder useEffect elements: ", elements]);
   }, [elements]);
 
+  const addOption = (node_id) => {
+    var thisElementIndex;
+    var newElements;
+    setElements((els) => {
+      var newEls = [];
+      for (var e in els) {
+        if (els[e].id === node_id) {
+          thisElementIndex = e;
+          var newDataOptions = { ...els[e].data.options };
+          newDataOptions[
+            `${els[e].id}_${els[e].data.nextOptionsKey}`
+          ] = `${els[e].id}_${els[e].data.nextOptionsKey}`;
+          newEls.push({
+            ...els[e],
+            data: {
+              ...els[e].data,
+              options: newDataOptions,
+              nextOptionsKey: els[e].data.nextOptionsKey + 1,
+            },
+          });
+        } else {
+          newEls.push(els[e]);
+        }
+      }
+      newElements = newEls;
+      return newEls;
+    });
+
+    onElementClick(null, newElements[thisElementIndex]);
+  };
+
   useEffect(() => {
-    setElements([
-      {
-        id: "1",
-        type: "inputNode",
-        data: { label: "An input node", sampleText: "this and that" },
-        position: { x: 0, y: 50 },
-      },
-      {
-        id: "2",
-        type: "output",
-        data: { label: "An input node", sampleName: "hello" },
-        position: { x: 0, y: 100 },
-        sourcePosition: "left",
-      },
-    ]);
+    if (elements.length === 0) {
+      setElements([
+        {
+          id: "1",
+          type: "startNode",
+          data: {
+            node_id: "1",
+            options: {},
+            text: "",
+            content: "text",
+            addOption: addOption,
+            nextOptionsKey: 0,
+          },
+          position: { x: 0, y: 50 },
+        },
+        // {
+        //   id: "2",
+        //   type: "output",
+        //   data: {},
+        //   position: { x: 0, y: 100 },
+        //   sourcePosition: "left",
+        // },
+      ]);
+    }
+    setElementsNextId(2);
   }, []);
 
   useEffect(() => {
-    if (reactflowInstance && elements.length > 0) {
-      reactflowInstance.fitView();
+    if (reactflowInstance) {
+      reactflowInstance.setTransform({ x: 200, y: 50, zoom: 1.5 });
     }
-  }, [reactflowInstance, elements.length]);
+  }, [reactflowInstance]);
 
   const onLoad = useCallback(
     (rfi) => {
@@ -92,14 +185,12 @@ const FlowBuilder = () => {
     [reactflowInstance]
   );
 
-  useEffect(() => {
-    console.log(elements);
-  }, [elements]);
-
-  const onEdgeUpdate = (oldEdge, newConnection) =>
+  const onEdgeUpdate = (oldEdge, newConnection) => {
+    console.log("edge update:", oldEdge, newConnection);
     setElements((els) => updateEdge(oldEdge, newConnection, els));
+  };
   const onConnect = (params) => {
-    console.log(params);
+    console.log(["flowBuilder onEdgeUpdate params:", params]);
 
     setElements((els) => addEdge(params, els));
   };
@@ -109,11 +200,20 @@ const FlowBuilder = () => {
       ...elements,
       {
         id: elementNextId.toString(),
-        type: "output",
-        data: {},
+        type: "flowNode",
+        data: {
+          node_id: elementNextId.toString(),
+          options: {},
+          text: "",
+          content: "text",
+          nextOptionsKey: 0,
+          addOption: addOption,
+        },
         position: { x: 100 * Math.random(), y: 100 * Math.random() },
       },
     ]);
+
+    setElementsNextId(elementNextId + 1);
   };
 
   const removeNode = () => {
@@ -126,11 +226,11 @@ const FlowBuilder = () => {
     }
 
     setElements(els);
+    setSelectedElement(null);
   };
 
   const onElementClick = (event, element) => {
-    console.log({ event, element });
-    setShowOptions(true);
+    // console.log({ event, element });
     setSelectedElement(element);
   };
 
@@ -143,6 +243,7 @@ const FlowBuilder = () => {
       if (els[e].id === element.id) {
         els[e] = {
           ...els[e],
+          // id: data.id,
           type: type,
           data: data,
         };
@@ -150,6 +251,26 @@ const FlowBuilder = () => {
     }
 
     setElements(els);
+  };
+
+  const showOptions = () => {
+    if (!selectedElement) {
+      return false;
+    } else {
+      let flag = false;
+      for (var e in elements) {
+        if (elements[e].id === selectedElement.id) {
+          flag = true;
+        }
+      }
+
+      return flag;
+    }
+  };
+
+  const parseAndDeploy = () => {
+    var response = flowParser(elements);
+    console.log(response);
   };
 
   return (
@@ -165,6 +286,7 @@ const FlowBuilder = () => {
                 onLoad={onLoad}
                 elementsSelectable={true}
                 onElementClick={onElementClick}
+                onNodeDragStart={onElementClick}
                 onEdgeUpdate={onEdgeUpdate}
                 onConnect={onConnect}
               >
@@ -176,19 +298,19 @@ const FlowBuilder = () => {
           </Grid>
           <Grid item xs={6}>
             <Paper className={classes.controlsContainer}>
-              {showOptions ? getForm() : null}
+              {showOptions() ? getForm() : null}
             </Paper>
           </Grid>
           <Grid item xs={6}>
             <Paper className={classes.controlsContainer}>
-              {showOptions ? (
+              {showOptions() ? (
                 <Button
                   variant="outlined"
                   color="secondary"
                   style={{ margin: "10px" }}
                   onClick={removeNode}
                 >
-                  Remove Node
+                  Remove Node {selectedElement?.id}
                 </Button>
               ) : null}
 
@@ -204,6 +326,7 @@ const FlowBuilder = () => {
                 variant="contained"
                 color="primary"
                 style={{ margin: "10px" }}
+                onClick={parseAndDeploy}
               >
                 <h3>Deploy Bot</h3>
               </Button>
@@ -214,7 +337,7 @@ const FlowBuilder = () => {
         {/* <div
           className={classes.showOptionsPopup}
           style={
-            showOptions ? { visibility: "visible" } : { visibility: "hidden" }
+            showOptions() ? { visibility: "visible" } : { visibility: "hidden" }
           }
         ></div> */}
       </Container>
@@ -224,7 +347,7 @@ const FlowBuilder = () => {
 
 export default FlowBuilder;
 
-const drawerWidth = 240;
+// const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
   root: {

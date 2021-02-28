@@ -2,8 +2,7 @@ var express = require("express");
 var router = express.Router();
 
 var client = require("./messengerClient");
-
-// var myJSON = require("./sample.json");
+var MongoClient = require("mongodb").MongoClient;
 
 router.get("/", function (req, res) {
   if (req.query["hub.verify_token"] === "FreestandIsAmazing") {
@@ -17,45 +16,118 @@ router.get("/", function (req, res) {
 router.post("/", function (req, res) {
   messaging_events = req.body.entry[0].messaging;
 
-  for (i = 0; i < messaging_events.length; i++) {
-    e = req.body.entry[0].messaging[i];
-    sender = e.sender.id;
+  var myJSON = null;
 
-    if (e.message && e.message.text) {
-      //* The message is a text
-      text = e.message.text;
+  //* Save bot
+  MongoClient.connect(
+    "mongodb://localhost:27017/manychat",
+    function (err, dbClient) {
+      if (err) throw err;
 
-      if (myJSON.response[e.message.text]) {
-        // client.sendText(sender, myJSON.response[e.message.text]);
-        client["sendText"](sender, myJSON.response[e.message.text]);
-        continue;
-      }
+      var db = dbClient.db("manychat");
 
-      //   if (text === "hi") {
-      //     client.sendText(sender, "Select a postback", {
-      //       quickReplies: [
-      //         {
-      //           contentType: "text",
-      //           title: "Red",
-      //           payload: "RED_PAYLOAD",
-      //         },
-      //       ],
-      //     });
+      db.collection("messenger_bot")
+        .find()
+        .toArray(function (err, res) {
+          myJSON = res[0];
 
-      //     continue;
-      //   }
+          for (i = 0; i < messaging_events.length; i++) {
+            e = req.body.entry[0].messaging[i];
+            sender = e.sender.id;
 
-      client.sendText(sender, "Say 'hi' to start :)");
+            if (e.message) {
+              if (e.message.quick_reply) {
+                //* The message is a postback
+                // text = JSON.stringify(e.postback);
+                if (
+                  myJSON.payloads[e.message.quick_reply.payload].quickReplies
+                ) {
+                  client["sendText"](
+                    sender,
+                    myJSON.payloads[e.message.quick_reply.payload].text,
+                    {
+                      quickReplies:
+                        myJSON.payloads[e.message.quick_reply.payload]
+                          .quickReplies,
+                    }
+                  );
+                } else {
+                  client["sendText"](
+                    sender,
+                    myJSON.payloads[e.message.quick_reply.payload].text
+                  );
+                }
+
+                continue;
+              }
+
+              if (e.message && e.message.text) {
+                //* The message is a text
+                if (myJSON.textWatchlist[e.message.text]) {
+                  console.log(
+                    myJSON.payloads[myJSON.textWatchlist[e.message.text]]
+                      .quickReplies
+                  );
+                  client["sendText"](
+                    sender,
+                    myJSON.payloads[myJSON.textWatchlist[e.message.text]].text,
+                    myJSON.payloads[myJSON.textWatchlist[e.message.text]]
+                      .quickReplies
+                      ? {
+                          quickReplies:
+                            myJSON.payloads[
+                              myJSON.textWatchlist[e.message.text]
+                            ].quickReplies,
+                        }
+                      : null
+                  );
+                  continue;
+                }
+
+                //   if (text === "hi") {
+                //     client.sendText(sender, "Select a postback", {
+                //       quickReplies: [
+                //         {
+                //           contentType: "text",
+                //           title: "Red",
+                //           payload: "RED_PAYLOAD",
+                //         },
+                //       ],
+                //     });
+
+                //     continue;
+                //   }
+
+                client.sendText(sender, "Say 'hi' to start :)");
+              }
+            }
+            if (e.postback) {
+              // console.log(e.postback);
+
+              if (
+                myJSON.payloads[e.postback.payload].quickReplies
+              ) {
+                client["sendText"](
+                  sender,
+                  myJSON.payloads[e.postback.payload].text,
+                  {
+                    quickReplies:
+                      myJSON.payloads[e.postback.payload]
+                        .quickReplies,
+                  }
+                );
+              } else {
+                client["sendText"](
+                  sender,
+                  myJSON.payloads[e.postback.payload].text
+                );
+              }
+            }
+          }
+        });
     }
-    if (e.postback) {
-      //* The message is a postback
-      text = JSON.stringify(e.postback);
+  );
 
-      client.sendText(sender, "Postback received: " + text.substring(0, 200));
-
-      continue;
-    }
-  }
   res.sendStatus(200);
 });
 

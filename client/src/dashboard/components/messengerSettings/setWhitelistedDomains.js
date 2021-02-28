@@ -29,6 +29,7 @@ const SetWhitelistedDomainsForm = () => {
       .then(function (response) {
         console.log(response);
       });
+    alert("Done!");
   };
 
   useEffect(() => {

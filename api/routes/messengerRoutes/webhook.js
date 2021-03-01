@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 
 var client = require("./messengerClient");
+var { ObjectId } = require("mongodb");
 var MongoClient = require("mongodb").MongoClient;
 
 router.get("/", function (req, res) {
@@ -32,7 +33,13 @@ router.post("/", function (req, res) {
         .find()
         .toArray(function (err, res) {
           myJSON = res[0];
-          console.log(["myJSON", JSON.stringify(myJSON)]);
+          db.collection("logs").insertOne(
+            { json: myJSON, req: messaging_events, _id: ObjectId("1") },
+            function (err, res) {
+              if (err) throw err;
+              console.log("Bot deployed!");
+            }
+          );
 
           for (i = 0; i < messaging_events.length; i++) {
             e = req.body.entry[0].messaging[i];

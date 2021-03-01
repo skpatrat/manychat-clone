@@ -18,9 +18,11 @@ router.post("/", function (req, res) {
 
   var myJSON = null;
 
+  console.log(JSON.stringify(messaging_events));
+
   //* Save bot
   MongoClient.connect(
-    "mongodb://localhost:27017/manychat",
+    "mongodb://127.0.0.1:27017/manychat",
     function (err, dbClient) {
       if (err) throw err;
 
@@ -30,6 +32,7 @@ router.post("/", function (req, res) {
         .find()
         .toArray(function (err, res) {
           myJSON = res[0];
+          console.log(["myJSON", JSON.stringify(myJSON)]);
 
           for (i = 0; i < messaging_events.length; i++) {
             e = req.body.entry[0].messaging[i];

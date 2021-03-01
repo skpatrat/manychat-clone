@@ -23,7 +23,7 @@ router.post("/", function (req, res) {
     } else if (data.deployBot) {
       //* Save bot
       MongoClient.connect(
-        "mongodb://localhost:27017/manychat",
+        "mongodb://127.0.0.1:27017/manychat",
         function (err, client) {
           if (err) throw err;
 

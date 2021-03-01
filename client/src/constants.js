@@ -1,3 +1,3 @@
-const apiIP = "https://139.59.30.64/";
+const apiIP = "https://www.freestand.ml/";
 
 export default apiIP;

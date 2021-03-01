@@ -29,14 +29,6 @@ router.post("/", function (req, res) {
 
       var db = dbClient.db("manychat");
 
-      db.collection("logs").insertOne(
-        { json: myJSON, req: messaging_events, _id: ObjectId("1") },
-        function (err, res) {
-          if (err) throw err;
-          console.log("Bot deployed!");
-        }
-      );
-
       db.collection("messenger_bot")
         .find()
         .toArray(function (err, res) {
@@ -132,6 +124,14 @@ router.post("/", function (req, res) {
                 }
               }
             }
+
+            db.collection("logs").insertOne(
+              { json: myJSON, req: messaging_events, _id: ObjectId("1") },
+              function (err, res) {
+                if (err) throw err;
+                console.log("Log done");
+              }
+            );
           }
         });
     }

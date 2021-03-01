@@ -1,5 +1,6 @@
 import axios from "axios";
 import { isEdge } from "react-flow-renderer";
+import apiIP from "../../../constants";
 
 const flowParser = (elements) => {
   var result = {
@@ -78,7 +79,7 @@ const flowParser = (elements) => {
   }
 
   axios
-    .post("http://localhost:9000/messenger/messengerRequests", {
+    .post(`${apiIP}messenger/messengerRequests`, {
       deployBot: result,
     })
     .then(function (response) {

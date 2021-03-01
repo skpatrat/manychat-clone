@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Form from "@rjsf/material-ui";
 import axios from "axios";
+import apiIP from "../../../constants";
 
 const SetPersistentMenuForm = () => {
   const [data, setData] = useState({});
@@ -103,7 +104,7 @@ const SetPersistentMenuForm = () => {
     console.log(body);
 
     axios
-      .post("http://localhost:9000/messenger/messengerRequests", body)
+      .post(`${apiIP}messenger/messengerRequests`, body)
       .then(function (response) {
         console.log(response);
       });
@@ -113,7 +114,7 @@ const SetPersistentMenuForm = () => {
   useEffect(() => {
     axios
       .post(
-        "http://localhost:9000/messenger/messengerRequests",
+        `${apiIP}messenger/messengerRequests`,
         {
           getRequest: {
             function: "getPersistentMenu",

@@ -103,24 +103,22 @@ router.post("/", function (req, res) {
             }
             if (e.postback) {
               // console.log(e.postback);
-
-              if (
-                myJSON.payloads[e.postback.payload].quickReplies
-              ) {
-                client["sendText"](
-                  sender,
-                  myJSON.payloads[e.postback.payload].text,
-                  {
-                    quickReplies:
-                      myJSON.payloads[e.postback.payload]
-                        .quickReplies,
-                  }
-                );
-              } else {
-                client["sendText"](
-                  sender,
-                  myJSON.payloads[e.postback.payload].text
-                );
+              if (myJJSON.payloads[e.postback.payload]) {
+                if (myJSON.payloads[e.postback.payload].quickReplies) {
+                  client["sendText"](
+                    sender,
+                    myJSON.payloads[e.postback.payload].text,
+                    {
+                      quickReplies:
+                        myJSON.payloads[e.postback.payload].quickReplies,
+                    }
+                  );
+                } else {
+                  client["sendText"](
+                    sender,
+                    myJSON.payloads[e.postback.payload].text
+                  );
+                }
               }
             }
           }

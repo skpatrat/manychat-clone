@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Form from "@rjsf/material-ui";
 import axios from "axios";
+import apiIP from "../../../constants";
 
 const SetWhitelistedDomainsForm = () => {
   const [data, setData] = useState({});
@@ -25,7 +26,7 @@ const SetWhitelistedDomainsForm = () => {
     console.log(body);
 
     axios
-      .post("http://localhost:9000/messenger/messengerRequests", body)
+      .post(`${apiIP}messenger/messengerRequests`, body)
       .then(function (response) {
         console.log(response);
       });
@@ -35,7 +36,7 @@ const SetWhitelistedDomainsForm = () => {
   useEffect(() => {
     axios
       .post(
-        "http://localhost:9000/messenger/messengerRequests",
+        `${apiIP}messenger/messengerRequests`,
         {
           getRequest: {
             function: "getWhitelistedDomains",

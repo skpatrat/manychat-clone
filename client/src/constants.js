@@ -1,3 +1,3 @@
-const apiIP = "https://892f31f29543.ngrok.io/";
+const apiIP = "https://139.59.30.64/";
 
 export default apiIP;

@@ -2,7 +2,6 @@ var express = require("express");
 var router = express.Router();
 
 var client = require("./messengerClient");
-var { ObjectId } = require("mongodb");
 var MongoClient = require("mongodb").MongoClient;
 
 router.get("/", function (req, res) {
@@ -33,6 +32,7 @@ router.post("/", function (req, res) {
         .find()
         .toArray(function (err, res) {
           myJSON = res[0];
+          console.log(["myJSON", JSON.stringify(myJSON)]);
 
           for (i = 0; i < messaging_events.length; i++) {
             e = req.body.entry[0].messaging[i];
@@ -106,7 +106,7 @@ router.post("/", function (req, res) {
             }
             if (e.postback) {
               // console.log(e.postback);
-              if (myJJSON.payloads[e.postback.payload]) {
+              if (myJSON.payloads[e.postback.payload]) {
                 if (myJSON.payloads[e.postback.payload].quickReplies) {
                   client["sendText"](
                     sender,
@@ -124,14 +124,6 @@ router.post("/", function (req, res) {
                 }
               }
             }
-
-            db.collection("logs").insertOne(
-              { json: myJSON, req: messaging_events, _id: ObjectId("1") },
-              function (err, res) {
-                if (err) throw err;
-                console.log("Log done");
-              }
-            );
           }
         });
     }

@@ -67,23 +67,26 @@ router.post("/", function (req, res) {
               if (e.message && e.message.text) {
                 //* The message is a text
                 if (myJSON.textWatchlist[e.message.text]) {
-                  console.log(
+                  if (
                     myJSON.payloads[myJSON.textWatchlist[e.message.text]]
                       .quickReplies
-                  );
-                  client["sendText"](
-                    sender,
-                    myJSON.payloads[myJSON.textWatchlist[e.message.text]].text,
-                    myJSON.payloads[myJSON.textWatchlist[e.message.text]]
-                      .quickReplies
-                      ? {
-                          quickReplies:
-                            myJSON.payloads[
-                              myJSON.textWatchlist[e.message.text]
-                            ].quickReplies,
-                        }
-                      : null
-                  );
+                  ) {
+                    client["sendText"](
+                      sender,
+                      myJSON.payloads[myJSON.textWatchlist[e.message.text]]
+                        .text,
+                      {
+                        quickReplies:
+                          myJSON.payloads[myJSON.textWatchlist[e.message.text]]
+                            .quickReplies,
+                      }
+                    );
+                  } else {
+                    client["sendText"](
+                      sender,
+                      myJSON.payloads[myJSON.textWatchlist[e.message.text]].text
+                    );
+                  }
                   continue;
                 }
 
